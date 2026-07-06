@@ -9,7 +9,7 @@ Runtime Gizmos with text rendering support.
 You can use Package Manager or import it directly.
 
 ```
-https://github.com/XJINE/Unity_RuntimeGizmos.git?path=Assets/Packages/KeyEventManager
+https://github.com/XJINE/Unity_RuntimeGizmos.git?path=Assets/Packages/RuntimeGizmos
 ```
 
 ### Dependencies
@@ -17,7 +17,6 @@ https://github.com/XJINE/Unity_RuntimeGizmos.git?path=Assets/Packages/KeyEventMa
 This project use following resources.
 
 - Unity.TextMeshPro
-- https://github.com/XJINE/Unity_SingletonMonoBehaviour
 
 ## How to Use
 
