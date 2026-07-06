@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 2cae8c52e3f8a2d4d8fc6283ecf1cde4
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - fontAsset: {instanceID: 0}
+  - solidColorShader: {fileID: 4800000, guid: eef3f18bb53fc9246b0b0a95a2f2e55d, type: 3}
+  - sdfFontShader: {fileID: 4800000, guid: 24ca2374538f9ec4e8ff463d8a62ed4b, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
