@@ -68,3 +68,9 @@ MaxDistance // Max distance from the camera to draw. 0 means no limit.
 Color       // Draw color.
 Matrix      // Transform applied to drawn positions.
 ```
+
+## NOTE
+I decided not to use IL Weaving (Mono.Cecil).
+It introduces issues such as making debugging difficult and complicating the handling of inherited classes.
+Potential conflicts with other IL weaving tools are also a difficult challenge.
+For these reasons, I prioritized keeping the implementation as simple as possible."
