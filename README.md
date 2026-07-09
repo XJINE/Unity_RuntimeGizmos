@@ -24,6 +24,22 @@ This project use following resources.
 
 Please add TextMeshPro resources to your project, as it references ``TMP_Settings.defaultFontAsset``.
 
+Due to licensing reasons, TextMeshPro resources are not included in this repository.
+The following is the minimum set of resources required to use the default TextMeshPro:
+
+```
+Resources/TMP Settings.asset
+Resources/Fonts & Materials/LiberationSans SDF.asset
+Resources/Fonts & Materials/LiberationSans SDF - Fallback.asset
+Resources/Style Sheets/Default Style Sheet.asset
+Resources/LineBreaking Leading Characters.txt
+Resources/LineBreaking Following Characters.txt
+Fonts/LiberationSans.ttf
+Fonts/LiberationSans - OFL.txt
+Shaders/TMP_SDF-Mobile.shader
+Shaders/TMPro_Properties.cginc
+```
+
 ### Implementation
 
 ```csharp
