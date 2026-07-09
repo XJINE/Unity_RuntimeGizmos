@@ -85,16 +85,8 @@ public static partial class RuntimeGizmos
         Camera.onPostRender -= OnPostRenderCamera;
         Camera.onPostRender += OnPostRenderCamera;
 
-        UnityEditor.EditorApplication.update -= OnEditorUpdate;
-        UnityEditor.EditorApplication.update += OnEditorUpdate;
-
         UnityEditor.AssemblyReloadEvents.beforeAssemblyReload -= ReleaseResources;
         UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += ReleaseResources;
-    }
-
-    private static void OnEditorUpdate()
-    {
-        _editorFrameCount++;
     }
 
     #endif
@@ -175,10 +167,17 @@ public static partial class RuntimeGizmos
         }
 
         #if UNITY_EDITOR
+
+        if (!Application.isPlaying)
+        {
+            _editorFrameCount++;
+        }
+
         if (!UnityEditor.Handles.ShouldRenderGizmos()) // Toggle Gizmos button in editor.
         {
             return;
         }
+
         #endif
 
         if (_drawCommands.Count <= 0 || 1 < FrameCount - _commandsFrame)
