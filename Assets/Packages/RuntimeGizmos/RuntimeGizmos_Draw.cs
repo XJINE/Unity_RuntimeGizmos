@@ -16,14 +16,22 @@ public static partial class RuntimeGizmos
         get => _context;
         set
         {
-            _context = value;
+            var newFrame = _batchFrame != FrameCount;
 
-            if (_batchFrame != FrameCount)
+            if (newFrame)
             {
                 _seenContexts.Clear();
                 _batchFrame = FrameCount;
             }
 
+            // NOTE:
+            // Ignore re-setting the same context within the same frame.
+            if (!newFrame && value == _context)
+            {
+                return;
+            }
+
+            _context   = value;
             _skipBatch = value != null && (!value.isActiveAndEnabled || !_seenContexts.Add(value));
         }
     }
