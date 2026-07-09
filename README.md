@@ -22,7 +22,9 @@ This project use following resources.
 
 ### Add TextMeshPro resources
 
-Please add TextMeshPro resources to your project, as it references ``TMP_Settings.defaultFontAsset``.
+Add TextMeshPro resources to your project, as it references ``TMP_Settings.defaultFontAsset``.
+
+#### Minimum resources
 
 Due to licensing reasons, TextMeshPro resources are not included in this repository.
 The following is the minimum set of resources required to use the default TextMeshPro:
@@ -57,6 +59,11 @@ private void OnDrawGizmos()
 
 1. Call ``OnDrawGizmos`` in the ``Update`` method.
 2. Inside ``OnDrawGizmos``, set ``RuntimeGizmos.Context = this;`` before drawing Gizmos.
+
+#### Limitation
+
+Do not call ``RuntimeGizmos.Context = this;`` twice within the same frame and context.
+Be careful when calling `base.OnDrawGizmos()`.
 
 ### API
 

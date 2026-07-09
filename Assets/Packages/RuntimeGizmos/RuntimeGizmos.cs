@@ -44,7 +44,6 @@ public static partial class RuntimeGizmos
     private static TMP_FontAsset              _fontAsset;
     private static int                        _commandsFrame = -1;
     private static int                        _editorFrameCount;
-    private static bool                       _hasRenderedThisFrame;
     private static readonly List<DrawCommand> _drawCommands  = new ();
 
     private static int FrameCount =>
@@ -175,6 +174,13 @@ public static partial class RuntimeGizmos
             return;
         }
 
+        #if UNITY_EDITOR
+        if (!UnityEditor.Handles.ShouldRenderGizmos()) // Toggle Gizmos button in editor.
+        {
+            return;
+        }
+        #endif
+
         if (_drawCommands.Count <= 0 || 1 < FrameCount - _commandsFrame)
         {
             _drawCommands.Clear();
@@ -207,8 +213,6 @@ public static partial class RuntimeGizmos
         }
 
         GL.PopMatrix();
-
-        _hasRenderedThisFrame = true;
     }
 
     private static void RenderShapes(Camera camera, Vector3 camPos, Vector3 camRight, Vector3 camUp, Vector3 camForward)
