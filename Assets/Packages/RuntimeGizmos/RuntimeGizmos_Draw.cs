@@ -11,6 +11,12 @@ public static partial class RuntimeGizmos
     public static UColor    Color       = UColor.white;
     public static Matrix4x4 Matrix      = Matrix4x4.identity;
 
+    private static float     PrevThickness   = 2f;
+    private static float     PrevFontSize    = 16f;
+    private static float     PrevMaxDistance = 0f;
+    private static UColor    PrevColor       = UColor.white;
+    private static Matrix4x4 PrevMatrix      = Matrix4x4.identity;
+
     public static Behaviour Context
     {
         get => _context;
@@ -32,6 +38,122 @@ public static partial class RuntimeGizmos
     private static int                         _batchFrame = -1;
     private static bool                        _skipBatch;
     private static readonly HashSet<Behaviour> _seenContexts = new ();
+
+    public readonly struct ThicknessScope : IDisposable
+    {
+        private readonly float _prevThickness;
+
+        public ThicknessScope(float thickness)
+        {
+            _prevThickness = Thickness;
+            Thickness      = thickness;
+        }
+
+        public void Dispose()
+        {
+            Thickness = _prevThickness;
+        }
+    }
+
+    public readonly struct FontSizeScope : IDisposable
+    {
+        private readonly float _prevFontSize;
+
+        public FontSizeScope(float fontSize)
+        {
+            _prevFontSize = FontSize;
+            FontSize      = fontSize;
+        }
+
+        public void Dispose()
+        {
+            FontSize = _prevFontSize;
+        }
+    }
+
+    public readonly struct MaxDistanceScope : IDisposable
+    {
+        private readonly float _prevMaxDistance;
+
+        public MaxDistanceScope(float maxDistance)
+        {
+            _prevMaxDistance = MaxDistance;
+            MaxDistance      = maxDistance;
+        }
+
+        public void Dispose()
+        {
+            MaxDistance = _prevMaxDistance;
+        }
+    }
+
+    public readonly struct ColorScope : IDisposable
+    {
+        private readonly UColor _prevColor;
+
+        public ColorScope(UColor color)
+        {
+            _prevColor = Color;
+            Color      = color;
+        }
+
+        public void Dispose()
+        {
+            Color = _prevColor;
+        }
+    }
+
+    public readonly struct MatrixScope : IDisposable
+    {
+        private readonly Matrix4x4 _prevMatrix;
+
+        public MatrixScope(Matrix4x4 matrix)
+        {
+            _prevMatrix = Matrix;
+            Matrix      = matrix;
+        }
+
+        public void Dispose()
+        {
+            Matrix = _prevMatrix;
+        }
+    }
+
+    public static ThicknessScope TempThickness(float thickness)
+    {
+        return new ThicknessScope(thickness);
+    }
+
+    public static FontSizeScope TempFontSize(float fontSize)
+    {
+        return new FontSizeScope(fontSize);
+    }
+
+    public static MaxDistanceScope TempMaxDistance(float maxDistance)
+    {
+        return new MaxDistanceScope(maxDistance);
+    }
+
+    public static ColorScope TempColor(UColor color)
+    {
+        return new ColorScope(color);
+    }
+
+    public static MatrixScope TempMatrix(Matrix4x4 matrix)
+    {
+        return new MatrixScope(matrix);
+    }
+
+    public static void SaveThickness     () { PrevThickness   = Thickness;       }
+    public static void RestoreThickness  () { Thickness       = PrevThickness;   }
+    public static void SaveFontSize      () { PrevFontSize    = FontSize;        }
+    public static void RestoreFontSize   () { FontSize        = PrevFontSize;    }
+    public static void SaveMaxDistance   () { PrevMaxDistance = MaxDistance;     }
+    public static void RestoreMaxDistance() { MaxDistance     = PrevMaxDistance; }
+    public static void SaveColor         () { PrevColor       = Color;           }
+    public static void RestoreColor      () { Color           = PrevColor;       }
+    public static void SaveMatrix        () { PrevMatrix      = Matrix;          }
+    public static void RestoreMatrix     () { Matrix          = PrevMatrix;      }
 
     private static bool BeginFrame()
     {

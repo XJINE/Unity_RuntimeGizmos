@@ -20,13 +20,15 @@ public class Sample : MonoBehaviour
         RuntimeGizmos.Color = Color.black;
         RuntimeGizmos.DrawText(new Vector3(0, 0, 0), "Origin", anchor:TextAnchor.UpperLeft);
 
+        RuntimeGizmos.SaveColor();
         RuntimeGizmos.Color = Color.red;
         RuntimeGizmos.DrawLine(new Vector3(-2, 0, 0), new Vector3(2, 0, 0));
         RuntimeGizmos.Color = Color.green;
         RuntimeGizmos.DrawLine(new Vector3(0, -2, 0), new Vector3(0, 2, 0));
         RuntimeGizmos.Color = Color.blue;
         RuntimeGizmos.DrawLine(new Vector3(0, 0, -2), new Vector3(0, 0, 2));
-
+        RuntimeGizmos.RestoreColor();
+        
         const float col0X   = -1.5f;
         const float colDX   =  1.0f;
         const float row1Y   =  1.5f;
@@ -50,10 +52,12 @@ public class Sample : MonoBehaviour
         RuntimeGizmos.Color = new Color(0.8f, 0.2f, 0.4f, 0.5f);
         RuntimeGizmos.DrawCube(r1c2, new Vector3(0.3f, 0.3f, 0.3f));
 
-        RuntimeGizmos.Color = Color.yellow;
-        RuntimeGizmos.Matrix = Matrix4x4.TRS(r1c3, Quaternion.Euler(45, 45, 0), Vector3.one);
-        RuntimeGizmos.DrawWireCube(Vector3.zero, new Vector3(0.3f, 0.3f, 0.3f));
-        RuntimeGizmos.Matrix = Matrix4x4.identity;
+        using (RuntimeGizmos.TempColor(Color.yellow))
+        {
+            RuntimeGizmos.Matrix = Matrix4x4.TRS(r1c3, Quaternion.Euler(45, 45, 0), Vector3.one);
+            RuntimeGizmos.DrawWireCube(Vector3.zero, new Vector3(0.3f, 0.3f, 0.3f));
+            RuntimeGizmos.Matrix = Matrix4x4.identity;
+        }
 
         RuntimeGizmos.Color = Color.white;
         RuntimeGizmos.DrawText(r1c0 + Vector3.up * labelDY, "Rect"    );
