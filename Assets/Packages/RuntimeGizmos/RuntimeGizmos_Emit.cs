@@ -558,24 +558,40 @@ public static partial class RuntimeGizmos
                        / (faceInfo.pointSize * camera.pixelHeight);
         }
 
-        var totalAdvance = 0f;
+        var lines        = cmd.Text.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
+        var lineAdvances = new float[lines.Length];
+        var maxAdvance   = 0f;
 
-        foreach (var t in cmd.Text)
+        for (var i = 0; i < lines.Length; i++)
         {
-            if (_fontAsset.characterLookupTable.TryGetValue(t, out var ch))
+            var advance = 0f;
+
+            foreach (var t in lines[i])
             {
-                totalAdvance += ch.glyph.metrics.horizontalAdvance;
+                if (_fontAsset.characterLookupTable.TryGetValue(t, out var ch))
+                {
+                    advance += ch.glyph.metrics.horizontalAdvance;
+                }
+            }
+
+            lineAdvances[i] = advance;
+
+            if (advance > maxAdvance)
+            {
+                maxAdvance = advance;
             }
         }
 
-        var textWidth  = totalAdvance * worldScale;
-        var textHeight = (faceInfo.ascentLine - faceInfo.descentLine) * worldScale;
+        var lineHeight = faceInfo.lineHeight * worldScale;
+        var textWidth  = maxAdvance * worldScale;
+        var textHeight = (faceInfo.ascentLine - faceInfo.descentLine) * worldScale
+                       + lineHeight * (lines.Length - 1);
 
         var offsetX = cmd.Anchor switch
         {
             TextAnchor.UpperLeft   or TextAnchor.MiddleLeft   or TextAnchor.LowerLeft   => 0f,
-            TextAnchor.UpperCenter or TextAnchor.MiddleCenter or TextAnchor.LowerCenter => -textWidth * 0.5f,
-            _ => -textWidth
+            TextAnchor.UpperCenter or TextAnchor.MiddleCenter or TextAnchor.LowerCenter => textWidth * 0.5f,
+            _ => textWidth
         };
 
         var offsetY = cmd.Anchor switch
@@ -585,44 +601,60 @@ public static partial class RuntimeGizmos
             _ => textHeight
         };
 
-        var cursor   = worldPos + camRight * offsetX + camUp * offsetY;
-        var baseline = cursor - camUp * (faceInfo.ascentLine * worldScale);
+        var topLeft = worldPos - camRight * offsetX + camUp * offsetY;
 
         GL.Color(cmd.Color);
 
-        foreach (var t in cmd.Text)
+        for (var i = 0; i < lines.Length; i++)
         {
-            if (!_fontAsset.characterLookupTable.TryGetValue(t, out var ch))
+            var line        = lines[i];
+            var lineWidth   = lineAdvances[i] * worldScale;
+            var lineOffsetX = cmd.Anchor switch
             {
-                continue;
+                TextAnchor.UpperLeft   or TextAnchor.MiddleLeft   or TextAnchor.LowerLeft   => 0f,
+                TextAnchor.UpperCenter or TextAnchor.MiddleCenter or TextAnchor.LowerCenter => (textWidth - lineWidth) * 0.5f,
+                _ => textWidth - lineWidth
+            };
+
+            var lineOrigin = topLeft
+                           + camRight * lineOffsetX
+                           - camUp * (lineHeight * i);
+            var baseline   = lineOrigin - camUp * (faceInfo.ascentLine * worldScale);
+
+            foreach (var t in line)
+            {
+                if (!_fontAsset.characterLookupTable.TryGetValue(t, out var ch))
+                {
+                    continue;
+                }
+
+                var glyph   = ch.glyph;
+                var rect    = glyph.glyphRect;
+                var metrics = glyph.metrics;
+
+                var bearingX = metrics.horizontalBearingX * worldScale;
+                var bearingY = metrics.horizontalBearingY * worldScale;
+                var glyphW   = rect.width  * worldScale;
+                var glyphH   = rect.height * worldScale;
+
+                var origin = baseline + camRight * bearingX;
+                var p0     = origin + camUp * (bearingY - glyphH);
+                var p1     = p0 + camRight * glyphW;
+                var p2     = p1 + camUp * glyphH;
+                var p3     = origin + camUp * bearingY;
+
+                var u0 = rect.x / atlasW;
+                var v0 = rect.y / atlasH;
+                var u1 = (rect.x + rect.width)  / atlasW;
+                var v1 = (rect.y + rect.height) / atlasH;
+
+                GL.TexCoord2(u0, v0); GL.Vertex(p0);
+                GL.TexCoord2(u1, v0); GL.Vertex(p1);
+                GL.TexCoord2(u1, v1); GL.Vertex(p2);
+                GL.TexCoord2(u0, v1); GL.Vertex(p3);
+
+                baseline += camRight * (metrics.horizontalAdvance * worldScale);
             }
-
-            var glyph   = ch.glyph;
-            var rect    = glyph.glyphRect;
-            var metrics = glyph.metrics;
-
-            var bearingX = metrics.horizontalBearingX * worldScale;
-            var bearingY = metrics.horizontalBearingY * worldScale;
-            var glyphW   = rect.width  * worldScale;
-            var glyphH   = rect.height * worldScale;
-
-            var origin = baseline + camRight * bearingX;
-            var p0     = origin + camUp * (bearingY - glyphH);
-            var p1     = p0 + camRight * glyphW;
-            var p2     = p1 + camUp * glyphH;
-            var p3     = origin + camUp * bearingY;
-
-            var u0 = rect.x / atlasW;
-            var v0 = rect.y / atlasH;
-            var u1 = (rect.x + rect.width)  / atlasW;
-            var v1 = (rect.y + rect.height) / atlasH;
-
-            GL.TexCoord2(u0, v0); GL.Vertex(p0);
-            GL.TexCoord2(u1, v0); GL.Vertex(p1);
-            GL.TexCoord2(u1, v1); GL.Vertex(p2);
-            GL.TexCoord2(u0, v1); GL.Vertex(p3);
-
-            baseline += camRight * (metrics.horizontalAdvance * worldScale);
         }
     }
 }

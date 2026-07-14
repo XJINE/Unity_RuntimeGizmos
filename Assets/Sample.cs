@@ -10,24 +10,21 @@ public class Sample : MonoBehaviour
     private void OnDrawGizmos()
     {
         RuntimeGizmos.Context = this;
-
-        var t = Time.time;
+        RuntimeGizmos.SaveColor();
 
         RuntimeGizmos.Color = Color.white;
         RuntimeGizmos.Thickness = 2.5f;
         RuntimeGizmos.DrawCross(Vector3.zero, 0.1f);
         RuntimeGizmos.Thickness = 2f;
         RuntimeGizmos.Color = Color.black;
-        RuntimeGizmos.DrawText(new Vector3(0, 0, 0), "Origin", anchor:TextAnchor.UpperLeft);
+        RuntimeGizmos.DrawText(new Vector3(0, 0, 0), "Origin\n(0, 0, 0)", anchor:TextAnchor.UpperLeft);
 
-        RuntimeGizmos.SaveColor();
         RuntimeGizmos.Color = Color.red;
         RuntimeGizmos.DrawLine(new Vector3(-2, 0, 0), new Vector3(2, 0, 0));
         RuntimeGizmos.Color = Color.green;
         RuntimeGizmos.DrawLine(new Vector3(0, -2, 0), new Vector3(0, 2, 0));
         RuntimeGizmos.Color = Color.blue;
         RuntimeGizmos.DrawLine(new Vector3(0, 0, -2), new Vector3(0, 0, 2));
-        RuntimeGizmos.RestoreColor();
         
         const float col0X   = -1.5f;
         const float colDX   =  1.0f;
@@ -123,5 +120,7 @@ public class Sample : MonoBehaviour
         RuntimeGizmos.DrawText(r3c1 + Vector3.up * labelDY, "Arrow"    );
         RuntimeGizmos.DrawText(r3c2 + Vector3.up * labelDY, "LineList" );
         RuntimeGizmos.DrawText(r3c3 + Vector3.up * labelDY, "LineStrip");
+
+        RuntimeGizmos.RestoreColor();
     }
 }
