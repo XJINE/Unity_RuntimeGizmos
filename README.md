@@ -140,7 +140,7 @@ It creates complications, such as making debugging difficult and handling inheri
 Another reason is to avoid conflicts with other IL weaving tools.
 
 Only options that apply to all Gizmos drawn at the same time are provided.
-For example, a parameter like ``segments`` should not be provided.
+For example, a parameter like ``segments`` should not be provided as an option.
 
 DrawGUITexture and Draw(Wire)Mesh are excluded since alternatives exist.
 DrawIcon is also excluded for the same reason as textures.
