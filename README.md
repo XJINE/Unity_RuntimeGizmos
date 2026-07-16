@@ -60,6 +60,8 @@ private void OnDrawGizmos()
 1. Call ``OnDrawGizmos`` in the ``Update`` method.
 2. Inside ``OnDrawGizmos``, set ``RuntimeGizmos.Context = this;`` before drawing Gizmos.
 
+Note that Camera.current and others will not work if called from Update.
+
 ```csharp
 // Classic style
 var prevColor = RuntimeGizmos.Color;
