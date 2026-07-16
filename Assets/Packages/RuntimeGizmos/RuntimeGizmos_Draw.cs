@@ -260,6 +260,16 @@ public static partial class RuntimeGizmos
         });
     }
 
+    public static void DrawRay(Vector3 from, Vector3 direction)
+    {
+        DrawLine(from, from + direction);
+    }
+
+    public static void DrawRay(Ray ray)
+    {
+        DrawLine(ray.origin, ray.origin + ray.direction);
+    }
+
     public static void DrawLineList(ReadOnlySpan<Vector3> points)
     {
         for (var i = 0; i + 1 < points.Length; i += 2)
@@ -412,6 +422,26 @@ public static partial class RuntimeGizmos
             Color       = Color,
             Thickness   = Thickness,
             Segments    = segments,
+            MaxDistance = MaxDistance,
+            Matrix      = Matrix
+        });
+    }
+
+    public static void DrawFrustum(Vector3 center, float fov, float maxRange, float minRange = 0f, float aspect = 1f)
+    {
+        if (!BeginFrame())
+        {
+            return;
+        }
+
+        _drawCommands.Add(new DrawCommand
+        {
+            Type        = CommandType.Frustum,
+            Position    = center,
+            Size        = new Vector3(fov, maxRange, minRange),
+            HeadSize    = aspect,
+            Color       = Color,
+            Thickness   = Thickness,
             MaxDistance = MaxDistance,
             Matrix      = Matrix
         });

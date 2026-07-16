@@ -47,13 +47,13 @@ Shaders/TMPro_Properties.cginc
 ```csharp
 private void Update()
 {
-	OnDrawGizmos();
+    OnDrawGizmos();
 }
 
 private void OnDrawGizmos()
 {
-	RuntimeGizmos.Context = this;
-	…
+    RuntimeGizmos.Context = this;
+    RuntimeGizmos.Draw~…
 }
 ```
 
@@ -63,7 +63,7 @@ private void OnDrawGizmos()
 #### Limitation
 
 Do not call ``RuntimeGizmos.Context = this;`` twice within the same frame and context.
-Be careful when calling `base.OnDrawGizmos()`.
+Be careful when calling ``base.OnDrawGizmos()`` and ``OnDrawGizmosSelected()``.
 
 ### API
 
@@ -73,6 +73,8 @@ DrawRect       (Vector3 position, Vector2 size)
 DrawWireRect   (Vector3 position, Vector2 size)                                             
 DrawCross      (Vector3 position, float size)                                               
 DrawLine       (Vector3 from, Vector3 to)                                                   
+DrawRay        (Vector3 from, Vector3 direction)                                            
+DrawRay        (Ray ray)                                                                    
 DrawLineList   (ReadOnlySpan<Vector3> points)                                               
 DrawLineStrip  (ReadOnlySpan<Vector3> points, bool looped = false)                          
 DrawArrow      (Vector3 from, Vector3 to, float headSize = 24f, int segments = 12)          
@@ -82,6 +84,7 @@ DrawCube       (Vector3 center, Vector3 size)
 DrawWireCube   (Vector3 center, Vector3 size)                    
 DrawSphere     (Vector3 center, float radius, int segments = 16) 
 DrawWireSphere (Vector3 center, float radius, int segments = 32)
+DrawFrustum    (Vector3 center, float fov, float maxRange, float minRange = 0f, float aspect = 1f)
 ```
 
 ```csharp
@@ -93,7 +96,10 @@ Matrix      // Transform applied to drawn positions.
 ```
 
 ## NOTE
-I decided not to use IL Weaving (Mono.Cecil).
-It introduces issues such as making debugging difficult and complicating the handling of inherited classes.
-Potential conflicts with other IL weaving tools are also a difficult challenge.
-For these reasons, I prioritized keeping the implementation as simple as possible."
+
+This project does not use IL Weaving (Mono.Cecil).
+It creates complications, such as making debugging difficult and handling inherited classes more complex.
+Another reason is to avoid conflicts with other IL weaving tools.
+
+Only options that apply to all Gizmos drawn at the same time are provided.
+For example, a parameter like ``segments`` should not be provided.

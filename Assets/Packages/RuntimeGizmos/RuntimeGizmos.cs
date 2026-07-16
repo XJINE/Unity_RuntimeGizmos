@@ -19,7 +19,8 @@ public static partial class RuntimeGizmos
         Cube,
         WireCube,
         Sphere,
-        WireSphere
+        WireSphere,
+        Frustum
     }
 
     private struct DrawCommand

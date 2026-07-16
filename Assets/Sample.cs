@@ -113,7 +113,7 @@ public class Sample : MonoBehaviour
             r3c3 + new Vector3(-0.05f,  0.15f, 0),
             r3c3 + new Vector3( 0.05f, -0.15f, 0),
             r3c3 + new Vector3( 0.15f,  0.15f, 0),
-        });
+        }, looped:true);
 
         RuntimeGizmos.Color = Color.white;
         RuntimeGizmos.DrawText(r3c0 + Vector3.up * labelDY, "Cross"    );

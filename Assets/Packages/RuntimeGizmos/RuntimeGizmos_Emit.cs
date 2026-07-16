@@ -49,6 +49,7 @@ public static partial class RuntimeGizmos
                 case CommandType.Cube:       EmitCube      (cmd, camForward);                           break;
                 case CommandType.WireCube:   EmitWireCube  (cmd, camPos, screenScale);                  break;
                 case CommandType.WireSphere: EmitWireSphere(cmd, camPos, screenScale);                  break;
+                case CommandType.Frustum:    EmitFrustum   (cmd, camPos, screenScale);                  break;
                 case CommandType.Text:                                                                  break;
                 case CommandType.Circle:                                                                break;
                 case CommandType.Sphere:                                                                break;
@@ -81,6 +82,7 @@ public static partial class RuntimeGizmos
                 case CommandType.Cube:                                                        break;
                 case CommandType.WireCube:                                                    break;
                 case CommandType.WireSphere:                                                  break;
+                case CommandType.Frustum:                                                     break;
                 default: throw new ArgumentOutOfRangeException();
             }
         }
@@ -528,6 +530,51 @@ public static partial class RuntimeGizmos
                      m.MultiplyPoint3x4(center + new Vector3(0, c1 * radius, s1 * radius)),
                      ht, camPos);
         }
+    }
+
+    private static void EmitFrustum(DrawCommand cmd, Vector3 camPos, Vector2 screenScale)
+    {
+        var m        = cmd.Matrix;
+        var apex     = cmd.Position;
+        var fov      = cmd.Size.x;
+        var maxRange = cmd.Size.y;
+        var minRange = cmd.Size.z;
+        var aspect   = cmd.HeadSize;
+        var wc       = m.MultiplyPoint3x4(apex);
+        var scale    = PixelScale(Vector3.Distance(camPos, wc), screenScale);
+        var ht       = cmd.Thickness * scale * 0.5f;
+
+        var tanFov = Mathf.Tan(fov * 0.5f * Mathf.Deg2Rad);
+        var nh     = tanFov * minRange;
+        var nw     = nh * aspect;
+        var fh     = tanFov * maxRange;
+        var fw     = fh * aspect;
+
+        var n0 = m.MultiplyPoint3x4(apex + new Vector3(-nw, -nh, minRange));
+        var n1 = m.MultiplyPoint3x4(apex + new Vector3( nw, -nh, minRange));
+        var n2 = m.MultiplyPoint3x4(apex + new Vector3( nw,  nh, minRange));
+        var n3 = m.MultiplyPoint3x4(apex + new Vector3(-nw,  nh, minRange));
+        var f0 = m.MultiplyPoint3x4(apex + new Vector3(-fw, -fh, maxRange));
+        var f1 = m.MultiplyPoint3x4(apex + new Vector3( fw, -fh, maxRange));
+        var f2 = m.MultiplyPoint3x4(apex + new Vector3( fw,  fh, maxRange));
+        var f3 = m.MultiplyPoint3x4(apex + new Vector3(-fw,  fh, maxRange));
+
+        GL.Color(cmd.Color);
+
+        EmitEdge(n0, n1, ht, camPos);
+        EmitEdge(n1, n2, ht, camPos);
+        EmitEdge(n2, n3, ht, camPos);
+        EmitEdge(n3, n0, ht, camPos);
+
+        EmitEdge(f0, f1, ht, camPos);
+        EmitEdge(f1, f2, ht, camPos);
+        EmitEdge(f2, f3, ht, camPos);
+        EmitEdge(f3, f0, ht, camPos);
+
+        EmitEdge(n0, f0, ht, camPos);
+        EmitEdge(n1, f1, ht, camPos);
+        EmitEdge(n2, f2, ht, camPos);
+        EmitEdge(n3, f3, ht, camPos);
     }
 
     private static void EmitText(DrawCommand cmd, Camera camera, Vector3 camPos, Vector3 camRight, Vector3 camUp)
