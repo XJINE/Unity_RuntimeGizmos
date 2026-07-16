@@ -131,7 +131,7 @@ Color       // Draw color.
 Matrix      // Transform applied to drawn positions.
 ```
 
-## NOTE
+## Development Notes
 
 This project does not use IL Weaving (Mono.Cecil).
 It creates complications, such as making debugging difficult and handling inherited classes more complex.
