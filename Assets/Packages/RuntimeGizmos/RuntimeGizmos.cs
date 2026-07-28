@@ -74,7 +74,6 @@ public static partial class RuntimeGizmos
     // NOTE:
     // Called in editor.
     #if UNITY_EDITOR
-
     [UnityEditor.InitializeOnLoadMethod]
     private static void RegisterEditor()
     {
@@ -89,7 +88,6 @@ public static partial class RuntimeGizmos
         UnityEditor.AssemblyReloadEvents.beforeAssemblyReload -= ReleaseResources;
         UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += ReleaseResources;
     }
-
     #endif
 
     private static void InitializeResources()
@@ -174,11 +172,6 @@ public static partial class RuntimeGizmos
             _editorFrameCount++;
         }
 
-        // NOTE:
-        // Offscreen (targetTexture) game cameras are rendered outside of the GameView's
-        // rendering scope, so ShouldRenderGizmos() always returns false for them.
-        // Skip the check for such cameras; SceneView cameras also have an internal
-        // targetTexture, so keep the check for non-Game cameras.
         var isOffscreenGameCamera = camera.cameraType == CameraType.Game && camera.targetTexture != null;
 
         if (!isOffscreenGameCamera &&
