@@ -174,7 +174,15 @@ public static partial class RuntimeGizmos
             _editorFrameCount++;
         }
 
-        if (!UnityEditor.Handles.ShouldRenderGizmos()) // Toggle Gizmos button in editor.
+        // NOTE:
+        // Offscreen (targetTexture) game cameras are rendered outside of the GameView's
+        // rendering scope, so ShouldRenderGizmos() always returns false for them.
+        // Skip the check for such cameras; SceneView cameras also have an internal
+        // targetTexture, so keep the check for non-Game cameras.
+        var isOffscreenGameCamera = camera.cameraType == CameraType.Game && camera.targetTexture != null;
+
+        if (!isOffscreenGameCamera &&
+            !UnityEditor.Handles.ShouldRenderGizmos()) // Toggle Gizmos button in editor.
         {
             return;
         }
