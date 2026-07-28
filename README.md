@@ -78,7 +78,7 @@ RuntimeGizmos.Draw~
 RuntimeGizmos.RestoreColor();
 
 // Scope style
-using RuntimeGizmos.TempColor(color);
+using var tempColor = RuntimeGizmos.TempColor(color);
 RuntimeGizmos.Draw~
 ~
 
