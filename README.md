@@ -126,12 +126,20 @@ DrawFrustum    (Vector3 center, float fov, float maxRange, float minRange = 0f, 
 #### Options
 
 ```csharp
+LayerName   // Layer name used for per-camera culling mask filtering. Default is "RuntimeGizmos".
 Thickness   // Line thickness in pixels.
 FontSize    // Text font size.
 MaxDistance // Max distance from the camera to draw. 0 means no limit.
 Color       // Draw color.
 Matrix      // Transform applied to drawn positions.
 ```
+
+### Culling Mask
+
+To control RuntimeGizmos visibility per camera, add a layer named ``RuntimeGizmos`` to your project.
+Cameras whose Culling Mask does not include the ``RuntimeGizmos`` layer will skip drawing.
+
+If the layer does not exist, RuntimeGizmos draws on all cameras as before.
 
 ## Development Notes
 

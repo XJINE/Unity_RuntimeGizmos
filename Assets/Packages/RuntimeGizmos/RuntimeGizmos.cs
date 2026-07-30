@@ -45,7 +45,7 @@ public static partial class RuntimeGizmos
     private static TMP_FontAsset              _fontAsset;
     private static int                        _commandsFrame = -1;
     private static int                        _editorFrameCount;
-    private static readonly List<DrawCommand> _drawCommands  = new ();
+    private static readonly List<DrawCommand> _drawCommands = new ();
 
     private static int FrameCount =>
     #if UNITY_EDITOR
@@ -161,6 +161,15 @@ public static partial class RuntimeGizmos
     private static void RenderAll(Camera camera)
     {
         if (camera.cameraType is not (CameraType.Game or CameraType.SceneView))
+        {
+            return;
+        }
+
+        var layer = LayerMask.NameToLayer(LayerName);
+
+        if (0 <= layer
+         && camera.cameraType == CameraType.Game
+         && (camera.cullingMask & (1 << layer)) == 0)
         {
             return;
         }
