@@ -49,6 +49,7 @@ public static partial class RuntimeGizmos
     private static int                        _commandsFrame = -1;
     private static int                        _editorFrameCount;
     private static readonly List<DrawCommand> _drawCommands = new ();
+    private static readonly int               _occludedAlphaId = Shader.PropertyToID("_OccludedAlpha");
 
     private static int FrameCount =>
     #if UNITY_EDITOR
@@ -251,6 +252,7 @@ public static partial class RuntimeGizmos
         new Vector2(0f, camera.orthographicSize * 2f / camera.pixelHeight) :
         new Vector2(2f * Mathf.Tan(camera.fieldOfView * 0.5f * Mathf.Deg2Rad) / camera.pixelHeight, 0f);
 
+        _solidColorMaterial.SetFloat(_occludedAlphaId, OccludedAlpha);
         _solidColorMaterial.SetPass(0); // Render occluded color.
         EmitShapes(camPos, camRight, camUp, camForward, screenScale);
         _solidColorMaterial.SetPass(1); // Render visible color.
@@ -259,6 +261,8 @@ public static partial class RuntimeGizmos
 
     private static void RenderTextures(Vector3 camPos, Vector3 camRight, Vector3 camUp)
     {
+        _textureMaterial.SetFloat(_occludedAlphaId, OccludedAlpha);
+
         foreach (var cmd in _drawCommands)
         {
             if (cmd.Type != CommandType.Texture || cmd.Texture == null || IsCulled(cmd, camPos))

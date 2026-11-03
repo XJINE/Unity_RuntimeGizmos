@@ -127,12 +127,13 @@ DrawFrustum    (Vector3 center, float fov, float maxRange, float minRange = 0f, 
 #### Options
 
 ```csharp
-LayerName   // Layer name used for per-camera culling mask filtering. Default is "RuntimeGizmos".
-Thickness   // Line thickness in pixels.
-FontSize    // Text font size.
-MaxDistance // Max distance from the camera to draw. 0 means no limit.
-Color       // Draw color.
-Matrix      // Transform applied to drawn positions.
+LayerName     // Layer name used for per-camera culling mask filtering. Default is "RuntimeGizmos".
+OccludedAlpha // Alpha applied to parts hidden behind scene objects. Default is 0.15.
+Thickness     // Line thickness in pixels.
+FontSize      // Text font size.
+MaxDistance   // Max distance from the camera to draw. 0 means no limit.
+Color         // Draw color.
+Matrix        // Transform applied to drawn positions.
 ```
 
 ### Culling Mask

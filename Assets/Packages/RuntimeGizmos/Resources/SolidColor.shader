@@ -1,10 +1,5 @@
 Shader "Hidden/RuntimeGizmos/SolidColor"
 {
-    Properties
-    {
-        _OccludedAlpha ("Occluded Alpha", Range(0, 1)) = 0.15
-    }
-
     SubShader
     {
         Tags

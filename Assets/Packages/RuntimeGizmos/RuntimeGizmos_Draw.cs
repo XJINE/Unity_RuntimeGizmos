@@ -5,7 +5,8 @@ using UColor = UnityEngine.Color;
 
 public static partial class RuntimeGizmos
 {
-    public static string    LayerName   = nameof(RuntimeGizmos);
+    public static string    LayerName     = nameof(RuntimeGizmos);
+    public static float     OccludedAlpha = 0.15f;
     public static float     Thickness   = 2f;
     public static float     FontSize    = 16f;
     public static float     MaxDistance = 0f;
