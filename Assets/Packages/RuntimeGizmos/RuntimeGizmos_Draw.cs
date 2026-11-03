@@ -187,6 +187,25 @@ public static partial class RuntimeGizmos
         });
     }
 
+    public static void DrawTexture(Vector3 position, Vector2 size, Texture texture)
+    {
+        if (texture == null || !BeginFrame())
+        {
+            return;
+        }
+
+        _drawCommands.Add(new DrawCommand
+        {
+            Type        = CommandType.Texture,
+            Position    = position,
+            Size        = size,
+            Color       = Color,
+            Texture     = texture,
+            MaxDistance = MaxDistance,
+            Matrix      = Matrix
+        });
+    }
+
     public static void DrawRect(Vector3 position, Vector2 size)
     {
         if (!BeginFrame())

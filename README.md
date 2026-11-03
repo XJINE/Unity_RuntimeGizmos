@@ -105,6 +105,7 @@ Note that ``OnDrawGizmosSelected()`` is not called in builds (at runtime).
 
 ```csharp
 DrawText       (Vector3 position, string text, TextAnchor anchor = TextAnchor.MiddleCenter)
+DrawTexture    (Vector3 position, Vector2 size, Texture texture)
 DrawRect       (Vector3 position, Vector2 size)
 DrawWireRect   (Vector3 position, Vector2 size)
 DrawCross      (Vector3 position, float size)

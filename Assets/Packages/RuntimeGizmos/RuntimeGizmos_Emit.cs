@@ -51,7 +51,8 @@ public static partial class RuntimeGizmos
                 case CommandType.WireSphere: EmitWireSphere(cmd, camPos, screenScale);                  break;
                 case CommandType.Frustum:    EmitFrustum   (cmd, camPos, screenScale);                  break;
                 case CommandType.Text:                                                                  break;
-                case CommandType.Circle:                                                                break;
+                case CommandType.Texture:                                                               break;
+                case CommandType.Circle:                                                             break;
                 case CommandType.Sphere:                                                                break;
                 default: throw new ArgumentOutOfRangeException();
             }
@@ -74,7 +75,8 @@ public static partial class RuntimeGizmos
                 case CommandType.Circle: EmitCircle   (cmd, camRight, camUp);                 break;
                 case CommandType.Sphere: EmitSphere   (cmd, camForward);                      break;
                 case CommandType.Text:                                                        break;
-                case CommandType.Rect:                                                        break;
+                case CommandType.Texture:                                                     break;
+                case CommandType.Rect:                                                      break;
                 case CommandType.WireRect:                                                    break;
                 case CommandType.Cross:                                                       break;
                 case CommandType.Line:                                                        break;
@@ -101,6 +103,19 @@ public static partial class RuntimeGizmos
         GL.Vertex(center + r - u);
         GL.Vertex(center + r + u);
         GL.Vertex(center - r + u);
+    }
+
+    private static void EmitTexture(DrawCommand cmd, Vector3 camRight, Vector3 camUp)
+    {
+        var center = cmd.Matrix.MultiplyPoint3x4(cmd.Position);
+        var r      = camRight * (cmd.Size.x * 0.5f);
+        var u      = camUp    * (cmd.Size.y * 0.5f);
+
+        GL.Color(cmd.Color);
+        GL.TexCoord2(0f, 0f); GL.Vertex(center - r - u);
+        GL.TexCoord2(1f, 0f); GL.Vertex(center + r - u);
+        GL.TexCoord2(1f, 1f); GL.Vertex(center + r + u);
+        GL.TexCoord2(0f, 1f); GL.Vertex(center - r + u);
     }
 
     private static void EmitWireRect(DrawCommand cmd, Vector3 camRight, Vector3 camUp, Vector3 camPos, Vector2 screenScale)

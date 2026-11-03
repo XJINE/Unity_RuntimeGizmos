@@ -9,6 +9,7 @@ public static partial class RuntimeGizmos
     private enum CommandType : byte
     {
         Text,
+        Texture,
         Rect,
         WireRect,
         Cross,
@@ -31,6 +32,7 @@ public static partial class RuntimeGizmos
         public Vector3     Size;
         public Color       Color;
         public string      Text;
+        public Texture     Texture;
         public float       FontSize;
         public float       Thickness;
         public float       HeadSize;
@@ -42,6 +44,7 @@ public static partial class RuntimeGizmos
 
     private static Material                   _solidColorMaterial;
     private static Material                   _sdfFontMaterial;
+    private static Material                   _textureMaterial;
     private static TMP_FontAsset              _fontAsset;
     private static int                        _commandsFrame = -1;
     private static int                        _editorFrameCount;
@@ -102,6 +105,16 @@ public static partial class RuntimeGizmos
             }
         }
 
+        if (_textureMaterial == null)
+        {
+            var shader = Resources.Load<Shader>("TextureColor");
+
+            if (shader != null)
+            {
+                _textureMaterial = new Material(shader);
+            }
+        }
+
         if (_sdfFontMaterial == null)
         {
             _fontAsset ??= TMP_Settings.defaultFontAsset;
@@ -122,7 +135,9 @@ public static partial class RuntimeGizmos
     {
         DestroyMaterial(_solidColorMaterial);
         DestroyMaterial(_sdfFontMaterial);
+        DestroyMaterial(_textureMaterial);
 
+        _textureMaterial    = null;
         _solidColorMaterial = null;
         _sdfFontMaterial    = null;
 
@@ -217,6 +232,11 @@ public static partial class RuntimeGizmos
 
         RenderShapes(camera, camPos, camRight, camUp, camForward);
 
+        if (_textureMaterial != null)
+        {
+            RenderTextures(camPos, camRight, camUp);
+        }
+
         if (_sdfFontMaterial != null)
         {
             RenderTexts(camera, camPos, camRight, camUp);
@@ -235,6 +255,28 @@ public static partial class RuntimeGizmos
         EmitShapes(camPos, camRight, camUp, camForward, screenScale);
         _solidColorMaterial.SetPass(1); // Render visible color.
         EmitShapes(camPos, camRight, camUp, camForward, screenScale);
+    }
+
+    private static void RenderTextures(Vector3 camPos, Vector3 camRight, Vector3 camUp)
+    {
+        foreach (var cmd in _drawCommands)
+        {
+            if (cmd.Type != CommandType.Texture || cmd.Texture == null || IsCulled(cmd, camPos))
+            {
+                continue;
+            }
+
+            _textureMaterial.mainTexture = cmd.Texture;
+
+            for (var pass = 0; pass < 2; pass++) // 0: occluded, 1: visible.
+            {
+                _textureMaterial.SetPass(pass);
+
+                GL.Begin(GL.QUADS);
+                EmitTexture(cmd, camRight, camUp);
+                GL.End();
+            }
+        }
     }
 
     private static void RenderTexts(Camera camera, Vector3 camPos, Vector3 camRight, Vector3 camUp)
