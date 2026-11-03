@@ -300,6 +300,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d6a93cb44b5c5c34f8233d3c87fb40d8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DebugDrawerSample
+  texture: {fileID: 10309, guid: 0000000000000000f000000000000000, type: 0}
 --- !u!1 &1587492702
 GameObject:
   m_ObjectHideFlags: 0

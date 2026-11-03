@@ -2,6 +2,10 @@ using UnityEngine;
 
 public class Sample : MonoBehaviour
 {
+    public Texture texture;
+
+    private Texture2D _generatedTexture;
+
     private void Update()
     {
         OnDrawGizmos();
@@ -31,6 +35,7 @@ public class Sample : MonoBehaviour
         const float row1Y   =  1.5f;
         const float row2Y   =  0.0f;
         const float row3Y   = -1.5f;
+        const float row4Y   = -3.0f;
         const float labelDY =  0.3f;
 
         var r1c0 = new Vector3(col0X + 0 * colDX, row1Y, 0);
@@ -120,6 +125,19 @@ public class Sample : MonoBehaviour
         RuntimeGizmos.DrawText(r3c1 + Vector3.up * labelDY, "Arrow"    );
         RuntimeGizmos.DrawText(r3c2 + Vector3.up * labelDY, "LineList" );
         RuntimeGizmos.DrawText(r3c3 + Vector3.up * labelDY, "LineStrip");
+
+        var r4c0 = new Vector3(col0X + 0 * colDX, row4Y, 0);
+        var r4c1 = new Vector3(col0X + 1 * colDX, row4Y, 0);
+
+        RuntimeGizmos.Color = Color.white;
+        RuntimeGizmos.DrawTexture(r4c0, new Vector2(0.4f, 0.4f), texture);
+
+        RuntimeGizmos.Color = Color.yellow;
+        RuntimeGizmos.DrawTexture(r4c1, new Vector2(0.6f, 0.3f), texture);
+
+        RuntimeGizmos.Color = Color.white;
+        RuntimeGizmos.DrawText(r4c0 + Vector3.up * labelDY, "Texture"      );
+        RuntimeGizmos.DrawText(r4c1 + Vector3.up * labelDY, "Texture(Tint)");
 
         RuntimeGizmos.RestoreColor();
     }
