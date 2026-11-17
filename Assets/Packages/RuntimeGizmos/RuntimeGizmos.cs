@@ -47,13 +47,20 @@ public static partial class RuntimeGizmos
     private static Material                   _textureMaterial;
     private static TMP_FontAsset              _fontAsset;
     private static int                        _commandsFrame = -1;
+    private static int                        _commandsTimeFrame = -1;
+    #if UNITY_EDITOR
     private static int                        _editorFrameCount;
+    #endif
     private static readonly List<DrawCommand> _drawCommands = new ();
     private static readonly int               _occludedAlphaId = Shader.PropertyToID("_OccludedAlpha");
 
+    // NOTE:
+    // In the editor, commands are collected per gizmo pass and consumed by the camera
+    // render that follows, so the "frame" advances per camera render, not per player frame.
+    // In builds, OnDrawGizmos is called once per frame (via IL weaving) from Update.
     private static int FrameCount =>
     #if UNITY_EDITOR
-    Application.isPlaying ? Time.frameCount : _editorFrameCount;
+    _editorFrameCount;
     #else
     Time.frameCount;
     #endif
@@ -192,11 +199,6 @@ public static partial class RuntimeGizmos
 
         #if UNITY_EDITOR
 
-        if (!Application.isPlaying)
-        {
-            _editorFrameCount++;
-        }
-
         var isOffscreenGameCamera = camera.cameraType == CameraType.Game && camera.targetTexture != null;
 
         if (!isOffscreenGameCamera &&
@@ -205,13 +207,37 @@ public static partial class RuntimeGizmos
             return;
         }
 
-        #endif
+        if (isOffscreenGameCamera)
+        {
+            // NOTE:
+            // Offscreen (RenderTexture) cameras run no gizmo pass, so no commands are
+            // collected for them. Draw the commands collected by the latest gizmo pass
+            // of an onscreen camera while they are fresh, without consuming them.
+            if (_drawCommands.Count <= 0 || 1 < Time.frameCount - _commandsTimeFrame)
+            {
+                return;
+            }
+        }
+        else
+        {
+            _editorFrameCount++;
+
+            if (_drawCommands.Count <= 0 || 1 < FrameCount - _commandsFrame)
+            {
+                _drawCommands.Clear();
+                return;
+            }
+        }
+
+        #else
 
         if (_drawCommands.Count <= 0 || 1 < FrameCount - _commandsFrame)
         {
             _drawCommands.Clear();
             return;
         }
+
+        #endif
 
         InitializeResources();
 

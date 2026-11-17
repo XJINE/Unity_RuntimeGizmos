@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 using UColor = UnityEngine.Color;
 
@@ -18,28 +17,6 @@ public static partial class RuntimeGizmos
     private static float     PrevMaxDistance = 0f;
     private static UColor    PrevColor       = UColor.white;
     private static Matrix4x4 PrevMatrix      = Matrix4x4.identity;
-
-    public static Behaviour Context
-    {
-        get => _context;
-        set
-        {
-            if (_batchFrame != FrameCount)
-            {
-                _seenContexts.Clear();
-                _batchFrame = FrameCount;
-            }
-
-            _context = value;
-
-            _skipBatch = value != null && (!value.isActiveAndEnabled || !_seenContexts.Add(value));
-        }
-    }
-
-    private static Behaviour                   _context;
-    private static int                         _batchFrame = -1;
-    private static bool                        _skipBatch;
-    private static readonly HashSet<Behaviour> _seenContexts = new ();
 
     public readonly struct ThicknessScope : IDisposable
     {
@@ -157,23 +134,21 @@ public static partial class RuntimeGizmos
     public static void SaveMatrix        () { PrevMatrix      = Matrix;          }
     public static void RestoreMatrix     () { Matrix          = PrevMatrix;      }
 
-    private static bool BeginFrame()
+    private static void BeginFrame()
     {
-        if (_commandsFrame != FrameCount)
+        if (_commandsFrame == FrameCount)
         {
-            _drawCommands.Clear();
-            _commandsFrame = FrameCount;
+            return;
         }
 
-        return !_skipBatch;
+        _drawCommands.Clear();
+        _commandsFrame     = FrameCount;
+        _commandsTimeFrame = Time.frameCount;
     }
 
     public static void DrawText(Vector3 position, string text, TextAnchor anchor = TextAnchor.MiddleCenter)
     {
-        if (!BeginFrame())
-        {
-            return;
-        }
+        BeginFrame();
 
         _drawCommands.Add(new DrawCommand
         {
@@ -190,10 +165,12 @@ public static partial class RuntimeGizmos
 
     public static void DrawTexture(Vector3 position, Vector2 size, Texture texture)
     {
-        if (texture == null || !BeginFrame())
+        if (texture == null)
         {
             return;
         }
+
+        BeginFrame();
 
         _drawCommands.Add(new DrawCommand
         {
@@ -209,10 +186,7 @@ public static partial class RuntimeGizmos
 
     public static void DrawRect(Vector3 position, Vector2 size)
     {
-        if (!BeginFrame())
-        {
-            return;
-        }
+        BeginFrame();
 
         _drawCommands.Add(new DrawCommand
         {
@@ -227,10 +201,7 @@ public static partial class RuntimeGizmos
 
     public static void DrawWireRect(Vector3 position, Vector2 size)
     {
-        if (!BeginFrame())
-        {
-            return;
-        }
+        BeginFrame();
 
         _drawCommands.Add(new DrawCommand
         {
@@ -246,10 +217,7 @@ public static partial class RuntimeGizmos
 
     public static void DrawCross(Vector3 position, float size)
     {
-        if (!BeginFrame())
-        {
-            return;
-        }
+        BeginFrame();
 
         _drawCommands.Add(new DrawCommand
         {
@@ -264,10 +232,7 @@ public static partial class RuntimeGizmos
 
     public static void DrawLine(Vector3 from, Vector3 to)
     {
-        if (!BeginFrame())
-        {
-            return;
-        }
+        BeginFrame();
 
         _drawCommands.Add(new DrawCommand
         {
@@ -314,10 +279,7 @@ public static partial class RuntimeGizmos
 
     public static void DrawArrow(Vector3 from, Vector3 to, float headSize = 24f, int segments = 12)
     {
-        if (!BeginFrame())
-        {
-            return;
-        }
+        BeginFrame();
 
         _drawCommands.Add(new DrawCommand
         {
@@ -335,10 +297,7 @@ public static partial class RuntimeGizmos
 
     public static void DrawCircle(Vector3 center, float radius, int segments = 32)
     {
-        if (!BeginFrame())
-        {
-            return;
-        }
+        BeginFrame();
 
         _drawCommands.Add(new DrawCommand
         {
@@ -354,10 +313,7 @@ public static partial class RuntimeGizmos
 
     public static void DrawWireCircle(Vector3 center, float radius, int segments = 32)
     {
-        if (!BeginFrame())
-        {
-            return;
-        }
+        BeginFrame();
 
         _drawCommands.Add(new DrawCommand
         {
@@ -374,10 +330,7 @@ public static partial class RuntimeGizmos
 
     public static void DrawCube(Vector3 center, Vector3 size)
     {
-        if (!BeginFrame())
-        {
-            return;
-        }
+        BeginFrame();
 
         _drawCommands.Add(new DrawCommand
         {
@@ -392,10 +345,7 @@ public static partial class RuntimeGizmos
 
     public static void DrawWireCube(Vector3 center, Vector3 size)
     {
-        if (!BeginFrame())
-        {
-            return;
-        }
+        BeginFrame();
 
         _drawCommands.Add(new DrawCommand
         {
@@ -411,10 +361,7 @@ public static partial class RuntimeGizmos
 
     public static void DrawSphere(Vector3 center, float radius, int segments = 16)
     {
-        if (!BeginFrame())
-        {
-            return;
-        }
+        BeginFrame();
 
         _drawCommands.Add(new DrawCommand
         {
@@ -430,10 +377,7 @@ public static partial class RuntimeGizmos
 
     public static void DrawWireSphere(Vector3 center, float radius, int segments = 32)
     {
-        if (!BeginFrame())
-        {
-            return;
-        }
+        BeginFrame();
 
         _drawCommands.Add(new DrawCommand
         {
@@ -450,10 +394,7 @@ public static partial class RuntimeGizmos
 
     public static void DrawFrustum(Vector3 center, float fov, float maxRange, float minRange = 0f, float aspect = 1f)
     {
-        if (!BeginFrame())
-        {
-            return;
-        }
+        BeginFrame();
 
         _drawCommands.Add(new DrawCommand
         {

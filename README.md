@@ -44,23 +44,18 @@ Shaders/TMPro_Properties.cginc
 
 ### Implementation
 
-```csharp
-private void Update()
-{
-    OnDrawGizmos();
-}
+Write ``RuntimeGizmos.Draw~`` calls inside ``OnDrawGizmos``. No other setup is needed.
 
+```csharp
 private void OnDrawGizmos()
 {
-    RuntimeGizmos.Context = this;
     RuntimeGizmos.Draw~…
 }
 ```
 
-1. Call ``OnDrawGizmos`` in the ``Update`` method.
-2. Inside ``OnDrawGizmos``, set ``RuntimeGizmos.Context = this;`` before drawing Gizmos.
-
-Note that Camera.current and others will not work if called from Update.
+- In the editor, Unity's native gizmo pass calls ``OnDrawGizmos`` as usual (the Gizmos toggle works).
+- In builds, IL weaving injects an ``OnDrawGizmos()`` call into ``Update`` at build time.
+  See [IL Weaving](#il-weaving) for details.
 
 ```csharp
 // Classic style
@@ -90,14 +85,6 @@ using(RuntimeGizmos.TempColor(color))
 ```
 
 There are three ways to configure the options.
-
-
-#### Limitation
-
-Do not call ``RuntimeGizmos.Context = this;`` twice within the same frame and context.
-Be careful when calling ``base.OnDrawGizmos()`` and ``OnDrawGizmosSelected()``.
-
-Note that ``OnDrawGizmosSelected()`` is not called in builds (at runtime).
 
 ### API
 
@@ -143,11 +130,36 @@ Cameras whose Culling Mask does not include the ``RuntimeGizmos`` layer will ski
 
 If the layer does not exist, RuntimeGizmos draws on all cameras as before.
 
-## Development Notes
+## IL Weaving
 
-This project does not use IL Weaving (Mono.Cecil).
-It creates complications, such as making debugging difficult and handling inherited classes more complex.
-Another reason is to avoid conflicts with other IL weaving tools.
+RuntimeGizmos uses IL weaving (``ILPostProcessor`` + Mono.Cecil) for player builds only.
+The editor code is never modified; there, Unity's native gizmo pass does the work.
+
+At build time, every assembly that references RuntimeGizmos is processed.
+For each MonoBehaviour whose ``OnDrawGizmos`` uses ``RuntimeGizmos.~``:
+
+- An ``OnDrawGizmos()`` call is injected at the top of its ``Update``.
+- If the class has no ``Update``, one is generated.
+  The generated ``Update`` calls the inherited ``base.Update()`` first, when one exists.
+- ``Update`` methods that already call ``OnDrawGizmos()`` manually are left as they are.
+
+### Limitations
+
+- ``RuntimeGizmos.Draw~`` calls must appear directly inside ``OnDrawGizmos``.
+  Classes that draw only through helper methods called from elsewhere are not detected.
+- ``OnDrawGizmosSelected()`` is not called in builds.
+- ``UnityEngine.Gizmos.~`` calls inside ``OnDrawGizmos`` do nothing in builds.
+- Disabled components do not draw in builds (``Update`` is not called),
+  while the editor still draws them (native ``OnDrawGizmos`` behavior).
+- Hiding a non-virtual ``OnDrawGizmos`` with ``new`` in a derived class is not supported.
+  Use ``protected virtual`` / ``override`` instead.
+- If a base class in another assembly declares an inaccessible (private / internal) ``Update``
+  and the derived class does not declare its own, the build fails with an error message
+  that explains the workarounds.
+- ``Camera.current`` and other gizmo-pass-only APIs are not available in builds,
+  because the call runs in ``Update``.
+
+## Development Notes
 
 Only options that apply to all Gizmos drawn at the same time are provided.
 For example, a parameter like ``segments`` should not be provided as an option.

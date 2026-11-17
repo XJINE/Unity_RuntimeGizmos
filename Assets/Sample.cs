@@ -6,14 +6,8 @@ public class Sample : MonoBehaviour
 
     private Texture2D _generatedTexture;
 
-    private void Update()
-    {
-        OnDrawGizmos();
-    }
-
     private void OnDrawGizmos()
     {
-        RuntimeGizmos.Context = this;
         RuntimeGizmos.SaveColor();
 
         RuntimeGizmos.Color = Color.white;
