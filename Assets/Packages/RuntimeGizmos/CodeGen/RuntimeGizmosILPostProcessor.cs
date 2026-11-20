@@ -9,21 +9,18 @@ using Unity.CompilationPipeline.Common.ILPostProcessing;
 namespace RuntimeGizmos.CodeGen
 {
     // NOTE:
-    // Makes RuntimeGizmos drawing written in OnDrawGizmos also run in player builds,
-    // by injecting an "OnDrawGizmos()" call into "Update()" at build time.
-    //
+    // Injects an "OnDrawGizmos()" call into "Update()" at build time,
+    // so that OnDrawGizmos also runs in player builds.
     // This processor runs for player builds only. In the editor it does nothing;
-    // there, Unity's native gizmo pass calls OnDrawGizmos.
-    //
-    // The weaving itself is implemented in the nested 'Weaver'.
+
     internal sealed partial class RuntimeGizmosILPostProcessor : ILPostProcessor
     {
         private static readonly string SelfAssemblyName  = typeof(RuntimeGizmosILPostProcessor).Assembly.GetName().Name;
         private static readonly string MonoBehaviourName = typeof(UnityEngine.MonoBehaviour).FullName;
         private static readonly string VoidTypeName      = typeof(void).FullName;
 
-        private const string GizmosAssemblyName = "RuntimeGizmos";
-        private const string GizmosTypeName     = "RuntimeGizmos";
+        private const string GizmosAssemblyName = nameof(RuntimeGizmos);
+        private const string GizmosTypeName     = nameof(RuntimeGizmos);
         private const string OnDrawGizmosName   = "OnDrawGizmos";
         private const string UpdateName         = "Update";
         private const string EditorDefine       = "UNITY_EDITOR";
@@ -76,8 +73,8 @@ namespace RuntimeGizmos.CodeGen
 
             try
             {
-                resolver = new ReferenceAssemblyResolver(compiledAssembly.References);
-                assembly = ReadAssembly(compiledAssembly, resolver);
+                resolver      = new ReferenceAssemblyResolver(compiledAssembly.References);
+                assembly      = ReadAssembly(compiledAssembly, resolver);
                 resolver.Self = assembly;
 
                 var woven = new Weaver(assembly.MainModule, diagnostics).Run();

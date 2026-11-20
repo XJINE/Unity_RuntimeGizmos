@@ -55,18 +55,40 @@ internal sealed partial class RuntimeGizmosILPostProcessor : ILPostProcessor
                 return false;
             }
 
-            return IsMonoBehaviour(type);
+            // Walk up the base types to see if this type derives from MonoBehaviour.
+
+            var current = type.BaseType;
+
+            while (current != null)
+            {
+                if (current.FullName == MonoBehaviourName)
+                {
+                    return true;
+                }
+
+                var definition = SafeResolve(current);
+
+                if (definition == null)
+                {
+                    return false;
+                }
+
+                current = definition.BaseType;
+            }
+
+            return false;
         }
 
         private void ProcessType(TypeDefinition type)
         {
-            var declaredOnDrawGizmos = GetDeclaredMethod(type, OnDrawGizmosName);
-
             // Widen a private RuntimeGizmos-using OnDrawGizmos to protected,
             // so that woven Updates in derived classes in other assemblies can call it.
+
+            var declaredOnDrawGizmos = GetDeclaredMethod(type, OnDrawGizmosName);
+
             if (declaredOnDrawGizmos != null
-             && declaredOnDrawGizmos.IsPrivate
-             && UsesRuntimeGizmos(declaredOnDrawGizmos))
+            &&  declaredOnDrawGizmos.IsPrivate
+            &&  UsesRuntimeGizmos(declaredOnDrawGizmos))
             {
                 declaredOnDrawGizmos.IsPrivate = false;
                 declaredOnDrawGizmos.IsFamily  = true;
@@ -79,11 +101,11 @@ internal sealed partial class RuntimeGizmosILPostProcessor : ILPostProcessor
                 return;
             }
 
-            var update = GetDeclaredMethod(type, UpdateName);
+            var updateMethod = GetDeclaredMethod(type, UpdateName);
 
-            if (update != null)
+            if (updateMethod != null)
             {
-                if (!update.HasBody || IsCovered(update))
+                if (!updateMethod.HasBody || HasOnDrawGizmosCall(updateMethod))
                 {
                     return;
                 }
@@ -92,10 +114,16 @@ internal sealed partial class RuntimeGizmosILPostProcessor : ILPostProcessor
 
                 if (onDrawGizmos == null)
                 {
-                    return; // Diagnostic has been emitted.
+                    return;
                 }
 
-                InjectOnDrawGizmosCall(update, onDrawGizmos, isVirtual);
+                // Insert "this.OnDrawGizmos()" at the top of the existing Update.
+
+                var il    = updateMethod.Body.GetILProcessor();
+                var first = updateMethod.Body.Instructions[0];
+
+                il.InsertBefore(first, Instruction.Create(OpCodes.Ldarg_0));
+                il.InsertBefore(first, Instruction.Create(isVirtual ? OpCodes.Callvirt : OpCodes.Call, onDrawGizmos));
 
                 _wovenCount++;
 
@@ -106,19 +134,19 @@ internal sealed partial class RuntimeGizmosILPostProcessor : ILPostProcessor
 
             if (baseUpdate != null && NeedsGizmos(baseOwnerDefinition))
             {
-                return; // The base Update is woven itself, so it already calls OnDrawGizmos.
+                return;
             }
 
             if (baseUpdate != null && !IsBaseUpdateCallable(type, baseUpdate, baseOwnerDefinition))
             {
-                return; // Diagnostic has been emitted.
+                return;
             }
 
             var generatedOnDrawGizmos = ResolveOnDrawGizmos(type, out var generatedIsVirtual);
 
             if (generatedOnDrawGizmos == null)
             {
-                return; // Diagnostic has been emitted.
+                return;
             }
 
             GenerateUpdate(type, baseUpdate, baseOwnerReference, generatedOnDrawGizmos, generatedIsVirtual);
@@ -151,20 +179,7 @@ internal sealed partial class RuntimeGizmosILPostProcessor : ILPostProcessor
             type.Methods.Add(update);
         }
 
-        private static void InjectOnDrawGizmosCall(MethodDefinition update, MethodReference onDrawGizmos, bool isVirtual)
-        {
-            var il    = update.Body.GetILProcessor();
-            var first = update.Body.Instructions[0];
-
-            il.InsertBefore(first, Instruction.Create(OpCodes.Ldarg_0));
-            il.InsertBefore(first, Instruction.Create(isVirtual ? OpCodes.Callvirt : OpCodes.Call, onDrawGizmos));
-        }
-
-        // NOTE:
-        // Update is treated as covered when its body already calls OnDrawGizmos
-        // (manually written code, or a previous run), or calls a base Update that
-        // belongs to a type that is woven itself.
-        private bool IsCovered(MethodDefinition update)
+        private bool HasOnDrawGizmosCall(MethodDefinition update)
         {
             foreach (var instruction in update.Body.Instructions)
             {
@@ -349,7 +364,19 @@ internal sealed partial class RuntimeGizmosILPostProcessor : ILPostProcessor
                     owner = owner.DeclaringType;
                 }
 
-                if (owner.FullName == GizmosTypeName && ScopeName(owner) == GizmosAssemblyName)
+                if (owner.FullName != GizmosTypeName)
+                {
+                    continue;
+                }
+
+                var scopeName = owner.Scope switch
+                {
+                    AssemblyNameReference assemblyName => assemblyName.Name,
+                    ModuleDefinition      module       => module.Assembly?.Name?.Name,
+                    _                                  => owner.Scope?.Name,
+                };
+
+                if (scopeName == GizmosAssemblyName)
                 {
                     return true;
                 }
@@ -380,7 +407,8 @@ internal sealed partial class RuntimeGizmosILPostProcessor : ILPostProcessor
         // NOTE:
         // Returns the base type as a TypeReference, substituting the generic arguments of
         // "currentReference" into the base's generic parameters (e.g. Foo : Singleton<Foo>).
-        private static TypeReference GetBaseTypeReference(TypeReference currentReference, TypeDefinition currentDefinition)
+        private static TypeReference GetBaseTypeReference(TypeReference  currentReference,
+                                                          TypeDefinition currentDefinition)
         {
             var baseReference = currentDefinition.BaseType;
 
@@ -389,15 +417,17 @@ internal sealed partial class RuntimeGizmosILPostProcessor : ILPostProcessor
                 return null;
             }
 
-            if (currentReference is GenericInstanceType current && baseReference is GenericInstanceType baseGeneric)
+            if (currentReference is GenericInstanceType current
+            &&  baseReference    is GenericInstanceType baseGeneric)
             {
                 var instantiated = new GenericInstanceType(baseGeneric.ElementType);
 
                 foreach (var argument in baseGeneric.GenericArguments)
                 {
                     instantiated.GenericArguments.Add(argument is GenericParameter parameter
-                                                   && parameter.Owner == currentDefinition ? current.GenericArguments[parameter.Position]
-                                                                                           : argument);
+                                                   && parameter.Owner == currentDefinition
+                                                    ? current.GenericArguments[parameter.Position]
+                                                    : argument);
                 }
 
                 return instantiated;
@@ -423,30 +453,6 @@ internal sealed partial class RuntimeGizmosILPostProcessor : ILPostProcessor
             return null;
         }
 
-        private static bool IsMonoBehaviour(TypeDefinition type)
-        {
-            var current = type.BaseType;
-
-            while (current != null)
-            {
-                if (current.FullName == MonoBehaviourName)
-                {
-                    return true;
-                }
-
-                var definition = SafeResolve(current);
-
-                if (definition == null)
-                {
-                    return false;
-                }
-
-                current = definition.BaseType;
-            }
-
-            return false;
-        }
-
         private static TypeDefinition SafeResolve(TypeReference reference)
         {
             try
@@ -456,16 +462,6 @@ internal sealed partial class RuntimeGizmosILPostProcessor : ILPostProcessor
             catch (AssemblyResolutionException)
             {
                 return null;
-            }
-        }
-
-        private static string ScopeName(TypeReference type)
-        {
-            switch (type.Scope)
-            {
-                case AssemblyNameReference assemblyName: return assemblyName.Name;
-                case ModuleDefinition      module:       return module.Assembly?.Name?.Name;
-                default:                                 return type.Scope?.Name;
             }
         }
     }
