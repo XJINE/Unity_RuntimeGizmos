@@ -7,8 +7,6 @@ using Unity.CompilationPipeline.Common.ILPostProcessing;
 namespace RuntimeGizmos.CodeGen {
 internal sealed partial class RuntimeGizmosILPostProcessor : ILPostProcessor
 {
-    // NOTE:
-    // IAssemblyResolver lets Mono.Cecil look up an assembly by name and get its AssemblyDefinition.
     private sealed class ReferenceAssemblyResolver : IAssemblyResolver
     {
         private readonly Dictionary<string, string>             _pathByName  = new (StringComparer.OrdinalIgnoreCase);
@@ -60,11 +58,12 @@ internal sealed partial class RuntimeGizmosILPostProcessor : ILPostProcessor
 
             // NOTE:
             // Unity may rewrite this file, so read it through memory.
-            var definition = AssemblyDefinition.ReadAssembly(new MemoryStream(File.ReadAllBytes(path)), parameters);
 
-            _cache[name.Name] = definition;
+            var def = AssemblyDefinition.ReadAssembly(new MemoryStream(File.ReadAllBytes(path)), parameters);
 
-            return definition;
+            _cache[name.Name] = def;
+
+            return def;
         }
 
         private string FindPath(string assemblyName)
@@ -77,6 +76,7 @@ internal sealed partial class RuntimeGizmosILPostProcessor : ILPostProcessor
             // NOTE:
             // The paths passed to this resolver are only direct references (from ICompiledAssembly.References).
             // Transitive references usually sit in the same directories, so fall back to scanning them.
+
             foreach (var directory in _directories)
             {
                 var candidate = Path.Combine(directory, assemblyName + ".dll");
@@ -94,9 +94,9 @@ internal sealed partial class RuntimeGizmosILPostProcessor : ILPostProcessor
 
         public void Dispose()
         {
-            foreach (var definition in _cache.Values)
+            foreach (var def in _cache.Values)
             {
-                definition.Dispose();
+                def.Dispose();
             }
 
             _cache.Clear();
